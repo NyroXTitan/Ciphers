@@ -24,6 +24,9 @@ Built with **HTML, CSS, JavaScript, Flask (Python)** and runs anywhere using **N
 ## 🧩 Project Structure
 
 ├── app.py # Flask backend
+
 ├── main_ciphers.py # Python file containing all cipher algorithms
+
 ├── templates/index.html # Frontend UI
+
 ├── README.md # Project documentation
