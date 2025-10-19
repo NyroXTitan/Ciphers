@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encryption & Decryption Tool</title>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #141e30, #243b55);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 30px;
+        width: 80%;
+        max-width: 900px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #00d4ff;
+    }
+
+    .box {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    textarea {
+        width: 45%;
+        height: 200px;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 16px;
+        resize: none;
+        outline: none;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    select, input {
+        padding: 8px 12px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        background: #00d4ff;
+        color: #000;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    input[type="text"], input[type="number"] {
+        width: 180px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    button {
+        padding: 10px 30px;
+        background: #00d4ff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        color: #000;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        background: #02a4c7;
+        transform: scale(1.05);
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Encryption & Decryption Tool</h2>
+    <div class="box">
+        <textarea id="inputText" placeholder="Enter your text here..."></textarea>
+
+        <div class="controls">
+            <select id="mode">
+                <option value="encrypt">Encrypt</option>
+                <option value="decrypt">Decrypt</option>
+            </select>
+
+            <select id="technique" onchange="updateKeyInput()">
+                <option value="caesar">Caesar Cipher</option>
+                <option value="vigenere">Vigenère Cipher</option>
+                <option value="railfence">Rail Fence Technique</option>
+                <option value="playfair">Playfair Cipher</option>
+            </select>
+
+            <input id="keyInput" type="number" placeholder="Enter key">
+
+            <button onclick="runOperation()">Run</button>
+        </div>
+
+        <textarea id="outputText" placeholder="Output will appear here..." readonly></textarea>
+    </div>
+</div>
+
+<script>
+    // dynamically change key input type
+    function updateKeyInput() {
+        const technique = document.getElementById("technique").value;
+        const keyInput = document.getElementById("keyInput");
+
+        if (technique === "caesar" || technique === "railfence") {
+            keyInput.type = "number";
+            keyInput.placeholder = "Enter numeric key";
+        } else {
+            keyInput.type = "text";
+            keyInput.placeholder = "Enter word key";
+        }
+    }
+
+    async function runOperation() {
+        const text = document.getElementById("inputText").value;
+        const mode = document.getElementById("mode").value;
+        const technique = document.getElementById("technique").value;
+        const key = document.getElementById("keyInput").value;
+
+        if (!text) return alert("Please enter text first!");
+        if (!key) return alert("Please enter a key!");
+
+        try {
+            const response = await fetch("/process", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text, mode, technique, key })
+            });
+            const data = await response.json();
+            document.getElementById("outputText").value = data.result;
+        } catch (err) {
+            alert("Error connecting to server. Make sure your Python app is running.");
+        }
+    }
+</script>
+
+</body>
+</html>
