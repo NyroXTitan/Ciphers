@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Encryption & Decryption Tool</title>
 <style>
     body {
@@ -24,6 +24,11 @@
         width: 80%;
         max-width: 900px;
         box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
     }
 
     h2 {
@@ -94,12 +99,33 @@
         transform: scale(1.05);
     }
 
+    /* History styling */
+    h3 {
+        color: #00d4ff;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    #history {
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 10px;
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: 14px;
+    }
+
+    #history div {
+        margin-bottom: 10px;
+        border-bottom: 1px solid #00d4ff;
+        padding-bottom: 8px;
+    }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Encryption & Decryption Tool</h2>
+    <h2> Encryption & Decryption Tool</h2>
     <div class="box">
         <textarea id="inputText" placeholder="Enter your text here..."></textarea>
 
@@ -123,6 +149,9 @@
 
         <textarea id="outputText" placeholder="Output will appear here..." readonly></textarea>
     </div>
+
+    <h3>History</h3>
+    <div id="history"><i>Loading history...</i></div>
 </div>
 
 <script>
@@ -137,6 +166,29 @@
         } else {
             keyInput.type = "text";
             keyInput.placeholder = "Enter word key";
+        }
+    }
+
+    async function updateHistory() {
+        try {
+            const response = await fetch('/history');
+            const data = await response.json();
+            const historyDiv = document.getElementById('history');
+            if (data.length === 0) {
+                historyDiv.innerHTML = "<i>No history yet.</i>";
+                return;
+            }
+            // Show latest first by reversing
+            historyDiv.innerHTML = data.slice().reverse().map(item => `
+                <div>
+                    <b>Input:</b> ${escapeHtml(item.input)} <br>
+                    <b>Mode:</b> ${escapeHtml(item.mode)} | <b>Technique:</b> ${escapeHtml(item.technique)} | <b>Key:</b> ${escapeHtml(item.key)} <br>
+                    <b>Output:</b> ${escapeHtml(item.output)}
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error("Failed to load history", err);
+            document.getElementById('history').innerHTML = "<i>Failed to load history.</i>";
         }
     }
 
@@ -157,10 +209,27 @@
             });
             const data = await response.json();
             document.getElementById("outputText").value = data.result;
+            updateHistory();  // update history after operation
         } catch (err) {
             alert("Error connecting to server. Make sure your Python app is running.");
         }
     }
+
+    // Escaping HTML special chars for safe display in history
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Load history on page load
+    window.onload = () => {
+        updateKeyInput();
+        updateHistory();
+    };
 </script>
 
 </body>
