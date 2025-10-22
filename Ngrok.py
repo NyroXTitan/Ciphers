@@ -1,12 +1,14 @@
 from flask import Flask, request, render_template,jsonify
 from pyngrok import ngrok
-from ciphers import caesar_cipher,vigenere_cipher,rail_fence,playfair_cipher
 # Open a public URL for the Flask app
 NGROK_AUTH_TOKEN = "NGROK_KEY"
 ngrok.set_auth_token(NGROK_AUTH_TOKEN)
 # Flask setup
 app = Flask(__name__, template_folder='templates')
 #run_with_ngrok(app)
+
+history = []
+
 
 @app.route('/')
 def home():
@@ -23,13 +25,13 @@ def process():
 
     try:
         if technique == "caesar":
-            key = int(key)
-            result = caesar_cipher(text, key, mode)
+            key_int = int(key)
+            result = caesar_cipher(text, key_int, mode)
         elif technique == "vigenere":
             result = vigenere_cipher(text, key, mode)
         elif technique == "railfence":
-            key = int(key)
-            result = rail_fence(text, key, mode)
+            key_int = int(key)
+            result = rail_fence(text, key_int, mode)
         elif technique == "playfair":
             result = playfair_cipher(text, key, mode)
         else:
@@ -37,9 +39,19 @@ def process():
     except Exception as e:
         result = f"Error: {e}"
 
+    # Append operation to history
+    history.append({
+        "input": text,
+        "output": result,
+        "mode": mode,
+        "technique": technique,
+        "key": key
+    })
+
     return jsonify({"result": result})
-
-
+@app.route("/history")
+def get_history():
+    return jsonify(history)
 
 
 
